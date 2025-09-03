@@ -309,6 +309,7 @@ fork(void)
   np->cwd = idup(p->cwd);
 
   safestrcpy(np->name, p->name, sizeof(p->name));
+  np->tracemask = p->tracemask;
 
   pid = np->pid;
 
@@ -704,4 +705,12 @@ uint64 nproc(void) {
       count++;
   }
   return count;
+}
+
+uint64 sys_trace(void){
+  int mask;
+  argint(0, &mask);
+  struct proc *p = myproc();
+  p->tracemask = mask;
+  return 0;
 }
