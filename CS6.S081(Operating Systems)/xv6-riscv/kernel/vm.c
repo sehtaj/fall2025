@@ -44,7 +44,7 @@ kvmmake(void)
   kvmmap(kpgtbl, TRAMPOLINE, (uint64)trampoline, PGSIZE, PTE_R | PTE_X);
 
   // allocate and map a kernel stack for each process.
-  proc_mapstacks(kpgtbl);
+  // proc_mapstacks(kpgtbl);
   
   return kpgtbl;
 }
@@ -475,4 +475,43 @@ vmprint(pagetable_t pagetable)
 {
   printf("page table %p\n", (void*)pagetable);
   printwalk(pagetable, 1);
+}
+
+// Create a new kernel only pagetable for a process
+pagetable_t kvmcreate_for_proc(void){
+  pagetable_t kpgtbl;
+
+  kpgtbl = (pagetable_t) kalloc();
+  if(kpgtbl == 0)
+    return 0;
+  memset(kpgtbl, 0, PGSIZE);
+
+  // recreate kernel mappings
+  // uart registers
+  kvmmap(kpgtbl, UART0, UART0, PGSIZE, PTE_R | PTE_W);
+
+  // virtio mmio disk interface
+  kvmmap(kpgtbl, VIRTIO0, VIRTIO0, PGSIZE, PTE_R | PTE_W);
+
+  // PLIC
+  kvmmap(kpgtbl, PLIC, PLIC, 0x4000000, PTE_R | PTE_W);
+
+  // map kernel text executable and read-only.
+  kvmmap(kpgtbl, KERNBASE, KERNBASE, (uint64)etext-KERNBASE, PTE_R | PTE_X);
+
+  // map kernel data and the physical RAM we'll make use of.
+  kvmmap(kpgtbl, (uint64)etext, (uint64)etext, PHYSTOP-(uint64)etext, PTE_R | PTE_W);
+
+  // map the trampoline for trap entry/exit to the highest virtual address in the kernel.
+  kvmmap(kpgtbl, TRAMPOLINE, (uint64)trampoline, PGSIZE, PTE_R | PTE_X);
+
+  // Note: do NOT map per-process kernel stacks here (they are per-process).
+  return kpgtbl;
+}
+
+void kvmfree_for_proc(pagetable_t kpt){
+  if(kpt == 0)
+    return;
+  // freewalk will recursively free page-table pages and then kfree the top-level page
+  freewalk(kpt);
 }
