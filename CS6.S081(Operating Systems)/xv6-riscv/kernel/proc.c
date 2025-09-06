@@ -159,10 +159,12 @@ found:
     return 0;
   }
 
-  // map the kernel stack to the process's kernel pagetable
-  p->kstack = KSTACK((int)(p - proc));
-  kvmmap(p->kpagetable, p->kstack, (uint64)stack_page, PGSIZE, PTE_R | PTE_W);
-  
+  int proc_index = (int)(p - proc);   
+  uint64 stack_va = KSTACK(proc_index);  
+  p->kstack = stack_va;
+  // map the physical stack page into the process's kernel page table with read/write permissions
+  kvmmap(p->kpagetable, stack_va, (uint64)stack_page, PGSIZE, PTE_R | PTE_W);
+    
   // Set up new context to start executing at forkret,
   // which returns to user space.
   memset(&p->context, 0, sizeof(p->context));
@@ -183,6 +185,11 @@ freeproc(struct proc *p)
   p->trapframe = 0;
   if(p->pagetable)
     proc_freepagetable(p->pagetable, p->sz);
+
+  if(p->kpagetable){
+    kvmfree_for_proc(p->kpagetable);
+    p->kpagetable = 0;
+  }
   p->pagetable = 0;
   p->sz = 0;
   p->pid = 0;
@@ -490,7 +497,14 @@ scheduler(void)
         // before jumping back to us.
         p->state = RUNNING;
         c->proc = p;
+        w_satp(MAKE_SATP(p->kpagetable));
+        sfence_vma();
         swtch(&c->context, &p->context);
+
+        // Process is done running; restore global kernel page table
+        w_satp(MAKE_SATP(kernel_pagetable));
+        sfence_vma();
+
 
         // Process is done running for now.
         // It should have changed its p->state before coming back.

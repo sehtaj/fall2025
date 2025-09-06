@@ -512,6 +512,5 @@ pagetable_t kvmcreate_for_proc(void){
 void kvmfree_for_proc(pagetable_t kpt){
   if(kpt == 0)
     return;
-  // freewalk will recursively free page-table pages and then kfree the top-level page
-  freewalk(kpt);
+  kfree((void*)kpt);
 }
