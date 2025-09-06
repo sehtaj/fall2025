@@ -6,6 +6,9 @@
 #include "proc.h"
 #include "defs.h"
 
+pagetable_t kvmcreate_for_proc(void);
+void kvmfree_for_proc(pagetable_t kpt);
+
 struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
@@ -140,6 +143,26 @@ found:
     return 0;
   }
 
+  p->kpagetable = kvmcreate_for_proc();
+  if(p->kpagetable == 0){
+    freeproc(p);
+    release(&p->lock);
+    return 0;
+  }
+
+  // Allocate one physical page for the stack
+  char *stack_page = kalloc();
+  if(stack_page == 0){
+    kvmfree_for_proc(p->kpagetable);
+    freeproc(p);
+    release(&p->lock);
+    return 0;
+  }
+
+  // map the kernel stack to the process's kernel pagetable
+  p->kstack = KSTACK((int)(p - proc));
+  kvmmap(p->kpagetable, p->kstack, (uint64)stack_page, PGSIZE, PTE_R | PTE_W);
+  
   // Set up new context to start executing at forkret,
   // which returns to user space.
   memset(&p->context, 0, sizeof(p->context));
