@@ -26,6 +26,22 @@ static void
 barrier()
 {
   // YOUR CODE HERE
+  pthread_mutex_lock(&bstate.barrier_mutex);
+
+  int my_round = bstate.round;
+  bstate.nthread++;
+
+  if (bstate.nthread == nthread) {
+    bstate.round++;
+    bstate.nthread = 0;
+    pthread_cond_broadcast(&bstate.barrier_cond);
+  } else {
+    while (bstate.round == my_round) {
+      pthread_cond_wait(&bstate.barrier_cond, &bstate.barrier_mutex);
+    }
+  }
+
+  pthread_mutex_unlock(&bstate.barrier_mutex);
   //
   // Block until all threads have called barrier()
   // and then increment bstate.round.
@@ -72,3 +88,9 @@ main(int argc, char *argv[])
   }
   printf("OK; passed\n");
 }
+
+/*  To run this file you have to use the following commands:
+    gcc -pthread -O2 -o barrier barrier.c
+    ./barrier 1   // run with 1 thread
+    ./barrier 2   // run with 2 threads
+*/
