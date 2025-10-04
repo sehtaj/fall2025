@@ -18,6 +18,7 @@ int keys[NKEYS];
 int nthread = 1;
 
 // YOUR CODE HERE (e.g., pthread_mutex_t lock; OR pthread_mutex_t bucket_locks[NBUCKET];)
+pthread_mutex_t bucket_locks[NBUCKET];
 
 double
 now()
@@ -43,6 +44,7 @@ put(int key, int value)
   int i = key % NBUCKET;
 
   // YOUR CODE HERE (lock acquire)
+    pthread_mutex_lock(&bucket_locks[i]);
 
   // is the key already present?
   struct entry *e = 0;
@@ -57,6 +59,8 @@ put(int key, int value)
   }
 
   // YOUR CODE HERE (lock release)
+
+  pthread_mutex_unlock(&bucket_locks[i]);
 }
 
 static struct entry*
@@ -65,6 +69,7 @@ get(int key)
   int i = key % NBUCKET;
 
   // YOUR CODE HERE (optional lock acquire if using fine-grained locking)
+  pthread_mutex_lock(&bucket_locks[i]);
 
   struct entry *e = 0;
   for (e = table[i]; e != 0; e = e->next) {
@@ -73,6 +78,7 @@ get(int key)
   }
 
   // YOUR CODE HERE (optional lock release if using fine-grained locking)
+    pthread_mutex_unlock(&bucket_locks[i]);
   return e;
 }
 
@@ -123,6 +129,10 @@ main(int argc, char *argv[])
   }
 
   // YOUR CODE HERE (e.g., pthread_mutex_init(&lock, NULL); OR init bucket_locks[i])
+    for (int i = 0; i < NBUCKET; i++) {
+    table[i] = NULL;
+    pthread_mutex_init(&bucket_locks[i], NULL);
+  }
 
   //
   // first the puts
@@ -154,3 +164,9 @@ main(int argc, char *argv[])
   printf("%d gets, %.3f seconds, %.0f gets/second\n",
          NKEYS*nthread, t1 - t0, (NKEYS*nthread) / (t1 - t0));
 }
+
+/*  To run this file you have to use the following commands:
+    gcc -pthread -O2 -o ph ph.c
+    ./ph 1   // run with 1 thread
+    ./ph 2   // run with 2 threads 
+*/
