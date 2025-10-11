@@ -158,6 +158,7 @@ UPROGS=\
 	$U/_trace\
 	$U/_bttest\
 	$U/_uthread\
+	$U/_bcachetest\
 	
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
@@ -205,3 +206,11 @@ check-qemu-version:
 		echo "ERROR: Need qemu version >= $(MIN_QEMU_VERSION)"; \
 		exit 1; \
 	fi
+
+$U/bcachetest.o: $U/bcachetest.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$U/_bcachetest: $U/bcachetest.o $(ULIB)
+	$(LD) $(LDFLAGS) -T $U/user.ld -o $@ $^
+	$(OBJDUMP) -S $@ > $*.asm
+	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym

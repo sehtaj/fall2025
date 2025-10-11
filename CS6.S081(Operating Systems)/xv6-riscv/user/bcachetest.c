@@ -6,6 +6,8 @@
 #include "kernel/fs.h"
 #include "user/user.h"
 
+int statistics(void *buf, int sz);
+
 void test0();
 void test1();
 
