@@ -124,6 +124,10 @@ $U/_uthread: $U/uthread.o $U/uthread_switch.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $U/_uthread $U/uthread.o $U/uthread_switch.o $(ULIB)
 	$(OBJDUMP) -S $U/_uthread > $U/uthread.asm
 
+
+$U/_bigfile: user/bigfile.c user/ulib.o user/usys.o user/printf.o user/umalloc.o
+	riscv64-unknown-elf-gcc $(CFLAGS) -I. -Ikernel -o $@ user/bigfile.c user/ulib.o user/usys.o user/printf.o user/umalloc.o
+
 mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
 	gcc -Werror -Wall -I. -o mkfs/mkfs mkfs/mkfs.c
 
@@ -160,6 +164,7 @@ UPROGS=\
 	$U/_bttest\
 	$U/_uthread\
 	$U/_bcachetest\
+	$U/_bigfile\
 	
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
