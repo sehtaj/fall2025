@@ -1,0 +1,19 @@
+1. usertrap() funnction in kernel/trap.c calls syscall()
+2. The value of p->trapframe->a7 is 7, which represents SYS_exec - the system call number for the exec system call.
+
+3. This code checks that the trap came from user mode.
+   The SPP bit says what mode the CPU was in before the trap:
+	0 means user mode
+	1 means kernel mode
+
+    usertrap() should only run for user-mode traps, so if the bit is not 0, it panics.
+    So the CPU was previously in user mode.
+
+4. The line num = p->trapframe->a7; becomes the assembly instruction ld a5,168(s2), which loads the syscall number from the trapframe. The value is then copied into register a3, which is the register used for num.
+
+So the kernel loads num into a5 first, then into a3.
+
+5. The kernel crashes because it attempts to dereference a null pointer (address 0), which is not mapped in the kernel's virtual address space, resulting in a load page fault (scause = 0xd).
+
+6. The binary name: "initcode" (or it might show as "init" if the exec syscall had succeeded)
+   The process id (pid) is 1
