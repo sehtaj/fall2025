@@ -1,0 +1,13 @@
+1. Function arguments are passed using registers a0 to a7. In printf, the value 13 is stored in a1.
+
+2. There is no direct call to f or g. The compiler put their code inside main instead of calling them.
+
+3. The address of printf is the 0x66a in call.asm.
+
+4. ra stores the address of the next instruction after the function call.
+   ra = 0x40 because jalr stores PC + 4, and here the jalr instruction is at address 0x3c, so the next instruction is at 0x40.
+
+5. 
+
+6. printf expects two integers (%d %d) but we only give one which is 3.
+   So x will print 3 and y will print garbage value
