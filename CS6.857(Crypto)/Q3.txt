@@ -1,0 +1,15 @@
+Q3.
+
+a) If transaction verification takes 1 second per transaction, then block propagation will become very slow.
+
+When a node receives a new block, it quickly checks the transactions and then forwards the block to other nodes. But if a block contains many transactions, the node will spend a long time just verifying them. During this time, the node cannot forward the block
+
+Because of this delay blocks will take longer to reach the rest of the network and different nodes may be working on different blocks at the same time. This increases the chance of forks, where the blockchain temporarily splits so overall the network is less synchronized
+
+
+b) Yes, dishonest minorities would have an easier time attacking BenCoin than Bitcoin. As transaction verification in BenCoin is very slow, nodes spend a lot of time checking transactions before they can accept and share a block with others. Because of this, blocks move slowly through the network, and nodes are not fully aware of the latest valid block.
+
+This delay helps dishonest miners. When honest nodes are busy checking transactions, attackers do not have to wait and can keep mining on their own chain. Because of this, they can more easily create a different version of the blockchain or try to spend the same money twice. In Bitcoin, transaction checking is fast, so blocks reach everyone quickly and honest nodes usually agree on the same chain. In BenCoin, slow checking causes poor coordination, which makes it easier for a small group of dishonest miners to attack the system
+
+
+c) Yes, this idea would improve the scalability of BenCoin. By sending the block immediately after the proof-of-work check, blocks will spread faster in the network. So nodes do not have to wait for slow transaction verification before sharing blocks. Even if some blocks are later deleted, the overall speed of the network increases which could increase the scaling of BenCoin
