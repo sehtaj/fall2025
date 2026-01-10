@@ -1,0 +1,33 @@
+## a)
+
+The problem with this approach is that the mod n never changes. This means the  RSA system is always based on the same p and q. Only the public exponent e is different
+
+If the same message m is encrypted multiple times using the same n but different small public exponents, then this can cause a security problem. For example, suppose the same message m is sent to Alice in different months. Then the ciphertexts would look like:
+
+c1 = m^3 mod n
+
+c2 = m^5 mod n
+
+c3 = m^7 mod n
+
+As the public exponents are small and publicly known, an attacker who sees the ciphertexts from different months can try to combine them. For example, the attacker may see one ciphertext created using e = 3 and another using e = 5, but both using the same n.
+
+Because 3 and 5 have no common factor, it is possible to find two numbers a and b such that:
+
+3a + 5b = 1
+
+This is just maths and does not require knowing the secret key
+
+Using this relation, the attacker can raise the ciphertexts to certain powers and multiply them in such a way that the exponents cancel out and the original message m is recovered modulo n. This means the attacker can find the message without knowing the secret key at all
+
+This completely breaks the security of RSA. So Alice’s method of changing only the public exponent is insecure
+
+## b)
+
+In this scheme, Alice generates a RSA key using p and q in January. In the next months she does not generate new keys as she just moves p and q to the next prime values and computes a new n each time
+
+The problem is that the primes are still very close to each other. Beacuse of this, the RSA mod values from different months are closely related.
+
+So it is still easy for an attacker to use mathematcial methods to break the values and if one modulus value is broken the others become easy to break as well as the prime changes slightly.
+
+So Alice’s keys are not independent and this scheme is also insecure and RSA keys must be generated using new, unrelated primes everytime.
